@@ -1,0 +1,255 @@
+---
+title: "Individual Project"
+author: 'Knarik Manukyan'
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+```
+
+
+## The problem/data description
+- Why is this important/interesting
+
+The coronovirus caused pandemic that the world didn't experience before. It's fascinating how a virus can have such a huge impact on the humanity, who think of themselves as the most powerful species. It had a huge impact on everyone living on this planet, on the economy of every country, on the social life of everyone and on a lot more areas.
+A proven vaccine or a medication is not found yet. Doctors and scientists are still doing experiments about this new virus. No one knows the exact impact it will have on our future, on the health of people who have this disease. No one knows if this will be a seasonal desease as the imunity after this virus is under a question. It's interesting and important to analyze  data about this pandemic, as it's happening right now, and new discoveries are made every single day.
+
+- The problem statement
+
+What impact had the outbreak on the population of USA. What's the behavour of people.
+
+- Where does the data come from?
+
+The data comes from https://infogears.org/.
+The data is updated till 07.13.2020.
+The dataset is based on a survey responses.
+
+## Main hypotheses
+The virus had a different impact on different age groups, gender and states.
+
+## Analysis
+
+### Introducing the data
+
+In the filtered dataset from Infogears there are 30088  obervations and 25 features, from which 8 have character values and 17 numeric values. There are 8 age groups, 3 genders, there zip code and state. It mentions symptoms for every individual, their mental health impact, exposure level, how many times they left their house.
+
+
+```{r, fig.width=4, fig.height=4}
+# 
+covid_data <- read.csv('covid-07-13-2020.csv')
+covid_filtered_data <- covid_data %>%
+  mutate(age = str_replace(covid_data$X.age, 'interval_', '')) %>%
+  mutate(age = str_replace(age, '_and_more', '+')) %>%
+  mutate(age = factor(str_replace(age, '_', '-'))) %>%
+  mutate(gender = factor(ifelse(gender == 'female' | gender == 'male', as.character(gender), 'other'))) %>%
+  mutate(leftHomeTimes = ifelse(leftHomeTimes == 'didNotLeft', 'didNotLeave', as.character(leftHomeTimes))) %>%
+  select(age, gender, zipCode, antibodyTest, virusTest, exposureLevel,
+         mentalHealthImpact, householdHeadcount, leftHomeTimes, leftForExercise, leftForShopping, leftForWork, leftForOther,
+         healthIssues, noSymptoms, bodyAche, diarrhea, difficultyBreathing, disorientation, fatigue, headAche, irritatedEyes, persistentCough, soreThroat, temperature)
+covid_data$zipCode = as.numeric(covid_data$zipCode)
+covid_filtered_data<- covid_filtered_data %>%
+  mutate(state = ifelse(zipCode %in% c(35000: 36999), 'AL',
+                 ifelse(zipCode %in% c(99500: 99999), 'AK',
+                 ifelse(zipCode %in% c(85000: 86999), 'AZ',
+                 ifelse(zipCode %in% c(71600: 72999), 'AR',
+                 ifelse(zipCode %in% c(90000: 96699), 'CA',
+                 ifelse(zipCode %in% c(80000: 81999), 'CO',
+                 ifelse(zipCode %in% c(6000: 6999), 'CT',
+                 ifelse(zipCode %in% c(19700: 19999), 'DE',
+                 ifelse(zipCode %in% c(32000: 34999), 'FL',
+                 ifelse(zipCode %in% c(30000: 31999), 'GA',
+                 ifelse(zipCode %in% c(96700: 96999), 'HI',
+                 ifelse(zipCode %in% c(83200: 83999), 'ID',
+                 ifelse(zipCode %in% c(60000: 62999), 'IL',
+                 ifelse(zipCode %in% c(46000: 47999), 'IN',
+                 ifelse(zipCode %in% c(50000: 52999), 'IA',
+                 ifelse(zipCode %in% c(66000: 67999), 'KS',
+                 ifelse(zipCode %in% c(40000: 42999), 'KY',
+                 ifelse(zipCode %in% c(70000: 71599), 'LA',
+                 ifelse(zipCode %in% c(3900: 4999), 'ME',
+                 ifelse(zipCode %in% c(20600: 21999), 'MD',
+                 ifelse(zipCode %in% c(1000: 2799), 'MA',
+                 ifelse(zipCode %in% c(48000: 49999), 'MI',
+                 ifelse(zipCode %in% c(55000: 56999), 'MN',
+                 ifelse(zipCode %in% c(38600: 39999), 'MS',
+                 ifelse(zipCode %in% c(63000: 65999), 'MO',
+                 ifelse(zipCode %in% c(59000: 59999), 'MT',
+                 ifelse(zipCode %in% c(27000: 28999), 'NC',
+                 ifelse(zipCode %in% c(58000: 58999), 'ND',
+                 ifelse(zipCode %in% c(68000: 69999), 'NE',
+                 ifelse(zipCode %in% c(88900: 89999), 'NV',
+                 ifelse(zipCode %in% c(3000: 3899), 'NH',
+                 ifelse(zipCode %in% c(7000: 8999), 'NJ',
+                 ifelse(zipCode %in% c(87000: 88499), 'NM',
+                 ifelse(zipCode %in% c(10000: 14999), 'NY',
+                 ifelse(zipCode %in% c(43000: 45999), 'OH',
+                 ifelse(zipCode %in% c(73000: 74999), 'OK',
+                 ifelse(zipCode %in% c(97000: 97999), 'OR',
+                 ifelse(zipCode %in% c(15000: 19699), 'PA',
+                 ifelse(zipCode %in% c(300: 999), 'PR',
+                 ifelse(zipCode %in% c(2800: 2999), 'RI',
+                 ifelse(zipCode %in% c(29000: 29999), 'SC',
+                 ifelse(zipCode %in% c(57000: 57999), 'SD',
+                 ifelse(zipCode %in% c(37000: 38599), 'TN',
+                 ifelse(zipCode %in% c(75000: 79999) | zipCode %in% c(88500: 88599), 'TX',
+                 ifelse(zipCode %in% c(84000: 84999), 'UT',
+                 ifelse(zipCode %in% c(5000: 5999), 'VT',
+                 ifelse(zipCode %in% c(22000: 24699), 'VA',
+                 ifelse(zipCode %in% c(20000: 20599), 'DC',NA)))))))))))))))))))))))))))))))))))))))))))))))))
+covid_filtered_data<- covid_filtered_data %>%
+  mutate(state = ifelse(zipCode %in% c(98000: 99499), 'WA',
+                 ifelse(zipCode %in% c(24700: 26999), 'WV',
+                 ifelse(zipCode %in% c(53000: 54999), 'WI',
+                 ifelse(zipCode %in% c(82000: 83199), 'WY', state)))))
+str(covid_filtered_data)
+```
+
+In this dataset, there are 204 people who tested positive for coronovirus
+```{r, fig.width=4, fig.height=4}
+covid_data %>%
+  filter(virusTest == 'positive') %>%
+  count()
+```
+In this dataset, there are 113 people who tested positive for antibodies
+```{r, fig.width=4, fig.height=4}
+covid_data %>%
+  filter(antibodyTest == 'positive') %>%
+  count()
+```
+The dataset covers almost all states. Here are the top 10 most infected states according to the survey participants. (the number of currently infected or already recovered people is counted)
+```{r, fig.width=4, fig.height=4}
+population <- covid_filtered_data %>%
+  group_by(state) %>%
+  summarize(population = n())
+
+covid_filtered_data %>%
+  filter(virusTest == 'positive' | antibodyTest == 'positive') %>%
+  group_by(state) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  head(10)
+```
+
+### Hipothesis 1: The behaviour of people in different states are significantly different
+For this plot top 20 states by number of responders is considered. In this graph we can see, that Tennessee is the most responsible state, as they have the most amount of people who stay at home. Overall, the difference is not huge. Most people leave their house only once. So the hypothesis is wrong.
+
+```{r, fig.width=10, fig.height=4}
+
+covid_filtered_data$leftHomeTimes <- factor(covid_filtered_data$leftHomeTimes)
+top_states <- covid_filtered_data %>%
+  group_by(state) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  head(20) %>%
+  select(state)
+top_states <- as.vector(top_states[['state']])
+covid_filtered_data_by_states <-  covid_filtered_data %>%
+  filter(state %in% top_states)
+covid_filtered_data_by_states %>%
+  ggplot(aes(x = reorder(state, leftHomeTimes), fill = leftHomeTimes)) + geom_bar(position = 'fill') + 
+  labs(title = "Relationship between State and the number of times people leave their house", x = "State", y = "Number of times people leave their house")
+```
+### Hipothesis 2: People who do not leave their house, have less chance to get infected
+It's expected to see fully isolated people to have the lowest percentage of positive tests. From this plot we can see that people who leave their house have once left positive antibody tests. So, staying home doesn't guarantee full safety. The hipothesis is wrong.
+
+```{r, fig.width=8, fig.height=4}
+covid_filtered_data_by_states %>%
+  filter(antibodyTest != 'notTested' & antibodyTest != 'awaitingResults') %>%
+ggplot(aes(x = leftHomeTimes, fill = antibodyTest)) + geom_bar(position = 'fill') + 
+  labs(title = "Relationship between number of times people left their house and antibody Test result", x = "Number of times people left their house", y = "Antibody Test result")
+```
+### Hipothesis 3: For older people the number of symptoms is more
+In this graph we can notice that people from age interval of 18 to 25 usually have no symptom (as it's the mean). The only outlier has more than 7.5 symptoms. What's interesting is that people from age interval 26 to 35 have the highest mean from interval 26 to 75. As we were expecting to see people from older generation have the highest mean of the number of symptoms, which is approximately 6. So as we expected the number of symptoms is higher by the age. The hypothesis is right.
+```{r, fig.width=6, fig.height=4}
+covid_filtered_data %>%
+  mutate(numberOfSymptoms = bodyAche + diarrhea + difficultyBreathing + disorientation + fatigue + headAche + irritatedEyes + persistentCough + soreThroat + temperature) %>%
+  filter(virusTest == 'positive') %>%
+  ggplot(aes(x = factor(age), y = numberOfSymptoms)) + 
+  geom_boxplot() + 
+  labs(title = "Relationship between Age and the number of Symptoms", x = "Age", y = "number of symptoms")
+  
+```
+### Hipothesis 4: People with cronic and some diseases have more symptoms.
+As was expected people who have no health issue have less symptoms then people who have either some or chronic issues, have higher chance of getting more symptoms. Which seems weird is that people with some health issues report more symptoms than people with chronic issues. The hypothesis is right.
+```{r, fig.width=6, fig.height=4}
+covid_filtered_data %>%
+   mutate(numberOfSymptoms = bodyAche + diarrhea + difficultyBreathing + disorientation + fatigue + headAche + irritatedEyes + persistentCough + soreThroat + temperature) %>%
+  filter(virusTest == 'positive') %>%
+  ggplot(aes(x = factor(healthIssues), y = numberOfSymptoms)) + 
+  geom_boxplot() + 
+  labs(title = "Relationship between Health Issue and the number of Symptoms", x = "Health Issues", y = "number of symptoms")
+  
+```
+### Hipothesis 5: Younger and older people are less valnurable for mental health impacts
+In this graph we can see that therre is a difference between mental health impact on different ages and genders. We can see that male participants from age group 13 to 17, and 75 and more had the least impact from all genders and age groups. The sensitiveness of females is proven here, as there are less females with no impact in any age group. In females we have the same picture (the youngest and the oldest had the least impact, probably as they are the ones who aren't working). In females and males people in the age interval 26 to 35 had the most impact. They have the highest percentage of significant Impact. As the age becomes higher the impact becomes less. So there is negative relationship between age and mental health impact. The hipothesis is proven.
+```{r, fig.width=10, fig.height=4}
+covid_filtered_data %>%
+  filter(gender != 'other') %>%
+  ggplot(aes(x = factor(age), fill = mentalHealthImpact)) + 
+  geom_bar(position = 'fill') + 
+  facet_grid(.~gender) +
+  labs(title = "Relationship between Age and the mental health impact by age and gender", x = "Age", y = "mental health impact") + 
+  theme(axis.text.x = element_text(angle=90), 
+        axis.ticks = element_blank()) 
+  
+```
+### Hipothesis 6: People in middle age have more direct COntact with an infected person
+From this plot we can see that people from 18 to 55 have more direct contacts than other groups. This can be explained by their working status. The hipothesis is correct. 
+
+```{r, fig.width=6, fig.height=4}
+covid_filtered_data %>%
+  ggplot(aes(x = factor(age), fill = exposureLevel)) + 
+  geom_bar(position = "fill") +
+  labs(title = "Relationship between Age and the exposure level", x = "Age", y = "Exposure level") + 
+  theme(axis.text.x = element_text(angle=90), 
+        axis.ticks = element_blank()) 
+```
+### Hipothesis 7: Fatigue, headache and sore throat are the most common symptoms of coronovirus
+from this data we can make top 3 symptoms.
+1. fatigue - 1463 cases
+2. headache - 1422 cases
+3. sore throat - 1228 cases
+
+```{r, fig.width=8, fig.height=4}
+covid_filtered_data %>%
+  summarize(sum(bodyAche), sum(diarrhea), sum(difficultyBreathing), sum(disorientation), sum(fatigue), sum(headAche), sum(irritatedEyes), sum(persistentCough), sum(soreThroat), sum(temperature))
+```
+
+### Hipothesis 8: Most people who were infected with coronovirus in the past had no symptom
+From all people who tested positive for antibody tests mostly had no symptom with 60 from 113 cases
+```{r, fig.width=8, fig.height=4}
+covid_filtered_data %>%
+  filter(antibodyTest == 'positive') %>%
+  summarize(peopleWithNoSymptom = sum(noSymptoms), totalNumber = n())
+```
+
+### Hipothesis 9: Different states have different number of people in a house, so if one is infected they will infect more people
+The mean is mostly same in all states, except Texas. The mean is approximately 3. 
+
+```{r, fig.width=4, fig.height=4}
+
+covid_filtered_data$leftHomeTimes <- factor(covid_filtered_data$leftHomeTimes)
+top_states <- covid_filtered_data %>%
+  group_by(state) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  head(10) %>%
+  select(state)
+top_states <- as.vector(top_states[['state']])
+covid_filtered_data_by_states <-  covid_filtered_data %>%
+  filter(state %in% top_states)
+covid_filtered_data_by_states %>%
+  ggplot(aes(x = factor(state), y = householdHeadcount)) + geom_boxplot() + ylim(0, 10) + 
+  labs(title = "Relationship between State and the number of people in household", x = "State", y = "Number of people in household") 
+  
+```
+ 
+## Summary of findings and recommendatins if any
+
+The analysis showed that the coronavirus pandemic had a significant impact on people's lives. The youngest and the oldest people are the ones who suffered less mentally, however the older generation and people with some or chronic health issues suffer the most from the disease, as they have the highest number of symptoms. Mostly people who are infected recover without any symptom, and the most common symptoms are fatigue, headache and sore throat.
+The recommendation that can be made, is to stay home to protect our older generation as they suffer the most.
